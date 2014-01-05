@@ -1,6 +1,11 @@
 package de.deepamehta.plugins.websockets;
 
+import de.deepamehta.core.Topic;
+import de.deepamehta.core.model.TopicModel;
 import de.deepamehta.core.osgi.PluginActivator;
+import de.deepamehta.core.service.ClientState;
+import de.deepamehta.core.service.Directives;
+import de.deepamehta.core.service.event.PostUpdateTopicListener;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
@@ -10,18 +15,21 @@ import org.eclipse.jetty.websocket.WebSocketHandler;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
 
-public class WebSocketsPlugin extends PluginActivator {
+public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopicListener {
 
     // ------------------------------------------------------------------------------------------------------- Constants
 
     private static final int WEBSOCKETS_PORT = 8081;
 
     // ---------------------------------------------------------------------------------------------- Instance Variables
+
+    private TestServer server;
 
     private Logger logger = Logger.getLogger(getClass().getName());
 
@@ -33,20 +41,30 @@ public class WebSocketsPlugin extends PluginActivator {
     public void init() {
         try {
             logger.info("##### Starting Jetty WebSockets #####");
-            Server server = new TestServer(WEBSOCKETS_PORT);
+            server = new TestServer(WEBSOCKETS_PORT);
             server.start();
             // ### server.join();
             logger.info("### Jetty WebSockets started successfully");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Starting Jetty WebSockets failed", e);
+            logger.log(Level.SEVERE, "Starting Jetty WebSockets failed");
         }
+    }
+
+    // *** Listener Implementations ***
+
+    @Override
+    public void postUpdateTopic(Topic topic, TopicModel newModel, TopicModel oldModel, ClientState clientState,
+                                                                                       Directives directives) {
+        server.broadcast(topic.toJSON().toString());
     }
 
     // ------------------------------------------------------------------------------------------------- Private Classes
 
     private class TestServer extends Server {
 
-        public TestServer(int port) {
+        private ConcurrentLinkedQueue<TestWebSocket> _broadcast = new ConcurrentLinkedQueue<TestWebSocket>();
+
+        private TestServer(int port) {
             // add connector
             SelectChannelConnector connector = new SelectChannelConnector();
             connector.setPort(port);
@@ -61,64 +79,77 @@ public class WebSocketsPlugin extends PluginActivator {
             };
             setHandler(wsHandler);
         }
-    }
 
-    private class TestWebSocket implements WebSocket, WebSocket.OnTextMessage, WebSocket.OnBinaryMessage,
-                                                      WebSocket.OnFrame, WebSocket.OnControl {
-        protected FrameConnection _connection;
-
-        public FrameConnection getConnection() {
-            return _connection;
+        private void broadcast(String message) {
+            for (TestWebSocket ws : _broadcast) {
+                try {
+                    ws.getConnection().sendMessage(message);
+                } catch (Exception e) {
+                    _broadcast.remove(ws);
+                    logger.log(Level.SEVERE, "Sending message to " + ws + " failed -- WebSocket removed", e);
+                }
+            }
         }
 
-        // *** WebSocket ***
+        private class TestWebSocket implements WebSocket, WebSocket.OnTextMessage, WebSocket.OnBinaryMessage,
+                                                          WebSocket.OnFrame, WebSocket.OnControl {
+            private FrameConnection _connection;
 
-        @Override
-        public void onOpen(Connection connection) {
-            System.err.printf("TestWebSocket#onOpen      %s\n", connection);
-        }
+            private FrameConnection getConnection() {
+                return _connection;
+            }
 
-        @Override
-        public void onClose(int code, String message) {
-            System.err.printf("TestWebSocket#onClose     %d %s\n", code, message);
-        }
+            // *** WebSocket ***
 
-        // *** WebSocket.OnTextMessage ***
+            @Override
+            public void onOpen(Connection connection) {
+                System.err.printf("TestWebSocket#onOpen      %s\n", connection);
+                _broadcast.add(this);
+            }
 
-        @Override
-        public void onMessage(String data) {
-            System.err.printf("TestWebSocket#onMessage   %s\n", data);
-        }
+            @Override
+            public void onClose(int code, String message) {
+                System.err.printf("TestWebSocket#onClose     %d %s\n", code, message);
+                _broadcast.remove(this);
+            }
 
-        // *** WebSocket.OnBinaryMessage ***
+            // *** WebSocket.OnTextMessage ***
 
-        @Override
-        public void onMessage(byte[] data, int offset, int length) {
-            System.err.printf("TestWebSocket#onMessage   %s\n", TypeUtil.toHexString(data, offset, length));
-        }
+            @Override
+            public void onMessage(String data) {
+                System.err.printf("TestWebSocket#onMessage   %s\n", data);
+            }
 
-        // *** WebSocket.OnFrame ***
+            // *** WebSocket.OnBinaryMessage ***
 
-        @Override
-        public boolean onFrame(byte flags, byte opcode, byte[] data, int offset, int length) {            
-            System.err.printf("TestWebSocket#onFrame     %s|%s %s\n", TypeUtil.toHexString(flags),
-                TypeUtil.toHexString(opcode), TypeUtil.toHexString(data, offset, length));
-            return false;
-        }
+            @Override
+            public void onMessage(byte[] data, int offset, int length) {
+                System.err.printf("TestWebSocket#onMessage   %s\n", TypeUtil.toHexString(data, offset, length));
+            }
+
+            // *** WebSocket.OnFrame ***
+
+            @Override
+            public boolean onFrame(byte flags, byte opcode, byte[] data, int offset, int length) {            
+                System.err.printf("TestWebSocket#onFrame     %s|%s %s\n", TypeUtil.toHexString(flags),
+                    TypeUtil.toHexString(opcode), TypeUtil.toHexString(data, offset, length));
+                return false;
+            }
         
-        @Override
-        public void onHandshake(FrameConnection connection) {
-            System.err.printf("TestWebSocket#onHandshake %s\n", connection);
-            _connection = connection;
-        }
+            @Override
+            public void onHandshake(FrameConnection connection) {
+                System.err.printf("TestWebSocket#onHandshake %s\n", connection);
+                _connection = connection;
+            }
 
-        // *** WebSocket.OnControl ***
+            // *** WebSocket.OnControl ***
 
-        @Override
-        public boolean onControl(byte controlCode, byte[] data, int offset, int length) {
-            System.err.printf("TestWebSocket#onControl   %s %s\n", TypeUtil.toHexString(controlCode),
-                TypeUtil.toHexString(data, offset, length));            
-            return false;
+            @Override
+            public boolean onControl(byte controlCode, byte[] data, int offset, int length) {
+                System.err.printf("TestWebSocket#onControl   %s %s\n", TypeUtil.toHexString(controlCode),
+                    TypeUtil.toHexString(data, offset, length));            
+                return false;
+            }
         }
-    }    
+    }
 }

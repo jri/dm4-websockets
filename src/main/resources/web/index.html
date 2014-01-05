@@ -3,15 +3,15 @@
     <title>DeepaMehta 4 WebSockets Test</title>
     <script type='text/javascript'>
         var ws = new WebSocket("ws://localhost:8081")
-        ws.onopen = function() {
-            console.log("onopen")
-            ws.send("Hello WebSocket!")
+        ws.onopen = function(e) {
+            console.log("Opening WebSocket connection to", e.target.url, e)
+            ws.send("Hello WebSocket server!")
         }
-        ws.onmessage = function(m) {
-            console.log("onmessage", m)
+        ws.onmessage = function(e) {
+            console.log("TOPIC UPDATED", e.data, e)
         }
-        ws.onclose = function(m) {
-            console.log("onclose", m)
+        ws.onclose = function(e) {
+            console.log("Closing WebSocket connection to", e.target.url, e)
         }
     </script>
 </head>
