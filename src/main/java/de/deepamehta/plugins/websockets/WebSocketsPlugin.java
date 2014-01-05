@@ -75,42 +75,40 @@ public class WebSocketsPlugin extends PluginActivator {
 
         @Override
         public void onOpen(Connection connection) {
-            System.err.printf("%s#onOpen %s\n", this.getClass().getSimpleName(), connection);
+            System.err.printf("TestWebSocket#onOpen      %s\n", connection);
         }
 
         @Override
         public void onClose(int code, String message) {
-            System.err.printf("%s#onDisonnect %d %s\n", this.getClass().getSimpleName(), code, message);
+            System.err.printf("TestWebSocket#onClose     %d %s\n", code, message);
         }
 
         // *** WebSocket.OnTextMessage ***
 
         @Override
         public void onMessage(String data) {
-            System.err.printf("%s#onMessage     %s\n", this.getClass().getSimpleName(), data);
+            System.err.printf("TestWebSocket#onMessage   %s\n", data);
         }
 
         // *** WebSocket.OnBinaryMessage ***
 
         @Override
         public void onMessage(byte[] data, int offset, int length) {
-            System.err.printf("%s#onMessage     %s\n", this.getClass().getSimpleName(),
-                TypeUtil.toHexString(data, offset, length));
+            System.err.printf("TestWebSocket#onMessage   %s\n", TypeUtil.toHexString(data, offset, length));
         }
 
         // *** WebSocket.OnFrame ***
 
         @Override
         public boolean onFrame(byte flags, byte opcode, byte[] data, int offset, int length) {            
-            System.err.printf("%s#onFrame %s|%s %s\n", this.getClass().getSimpleName(), TypeUtil.toHexString(flags),
+            System.err.printf("TestWebSocket#onFrame     %s|%s %s\n", TypeUtil.toHexString(flags),
                 TypeUtil.toHexString(opcode), TypeUtil.toHexString(data, offset, length));
             return false;
         }
         
         @Override
         public void onHandshake(FrameConnection connection) {
-            System.err.printf("%s#onHandshake %s %s\n", this.getClass().getSimpleName(), connection,
-                connection.getClass().getSimpleName());
+            System.err.printf("TestWebSocket#onHandshake %s\n", connection);
             _connection = connection;
         }
 
@@ -118,8 +116,8 @@ public class WebSocketsPlugin extends PluginActivator {
 
         @Override
         public boolean onControl(byte controlCode, byte[] data, int offset, int length) {
-            System.err.printf("%s#onControl  %s %s\n", this.getClass().getSimpleName(),
-                TypeUtil.toHexString(controlCode), TypeUtil.toHexString(data, offset, length));            
+            System.err.printf("TestWebSocket#onControl   %s %s\n", TypeUtil.toHexString(controlCode),
+                TypeUtil.toHexString(data, offset, length));            
             return false;
         }
     }    

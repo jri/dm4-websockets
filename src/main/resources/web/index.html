@@ -1,0 +1,18 @@
+<html>
+<head>
+    <title>DeepaMehta 4 WebSockets Test</title>
+    <script type='text/javascript'>
+        var ws = new WebSocket("ws://localhost:8081")
+        ws.onopen = function() {
+            console.log("onopen")
+            ws.send("Hello WebSocket!")
+        }
+        ws.onmessage = function(m) {
+            console.log("onmessage", m)
+        }
+        ws.onclose = function(m) {
+            console.log("onclose", m)
+        }
+    </script>
+</head>
+</html>
