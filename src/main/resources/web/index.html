@@ -4,14 +4,14 @@
     <script type='text/javascript'>
         var ws = new WebSocket("ws://localhost:8081")
         ws.onopen = function(e) {
-            console.log("Opening WebSocket connection to", e.target.url, e)
+            console.log("Opening WebSocket connection to " + e.target.url, e)
             ws.send("Hello WebSocket server!")
         }
         ws.onmessage = function(e) {
             console.log("TOPIC UPDATED", e.data, e)
         }
         ws.onclose = function(e) {
-            console.log("Closing WebSocket connection to", e.target.url, e)
+            console.log("Closing WebSocket connection to " + e.target.url + " (" + e.reason + ")", e)
         }
     </script>
 </head>

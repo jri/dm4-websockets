@@ -29,7 +29,7 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
 
     // ---------------------------------------------------------------------------------------------- Instance Variables
 
-    private TestServer server;
+    private WebSocketServer server;
 
     private Logger logger = Logger.getLogger(getClass().getName());
 
@@ -40,13 +40,23 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
     @Override
     public void init() {
         try {
-            logger.info("##### Starting Jetty WebSockets #####");
-            server = new TestServer(WEBSOCKETS_PORT);
+            logger.info("##### Starting Jetty WebSocket server #####");
+            server = new WebSocketServer(WEBSOCKETS_PORT);
             server.start();
             // ### server.join();
-            logger.info("### Jetty WebSockets started successfully");
+            logger.info("### Jetty WebSocket server started successfully");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Starting Jetty WebSockets failed");
+            logger.log(Level.SEVERE, "Starting Jetty WebSocket server failed");
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        try {
+            logger.info("##### Stopping Jetty WebSocket server #####");
+            server.stop();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Stopping Jetty WebSocket server failed");
         }
     }
 
@@ -60,32 +70,31 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
 
     // ------------------------------------------------------------------------------------------------- Private Classes
 
-    private class TestServer extends Server {
+    private class WebSocketServer extends Server {
 
-        private ConcurrentLinkedQueue<TestWebSocket> _broadcast = new ConcurrentLinkedQueue<TestWebSocket>();
+        private ConcurrentLinkedQueue<TestWebSocket> broadcastList = new ConcurrentLinkedQueue<TestWebSocket>();
 
-        private TestServer(int port) {
+        private WebSocketServer(int port) {
             // add connector
             SelectChannelConnector connector = new SelectChannelConnector();
             connector.setPort(port);
             addConnector(connector);
             //
             // set WebSocket handler
-            WebSocketHandler wsHandler = new WebSocketHandler() {
+            setHandler(new WebSocketHandler() {
                 @Override
                 public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
                     return new TestWebSocket();
                 }
-            };
-            setHandler(wsHandler);
+            });
         }
 
         private void broadcast(String message) {
-            for (TestWebSocket ws : _broadcast) {
+            for (TestWebSocket ws : broadcastList) {
                 try {
                     ws.getConnection().sendMessage(message);
                 } catch (Exception e) {
-                    _broadcast.remove(ws);
+                    broadcastList.remove(ws);
                     logger.log(Level.SEVERE, "Sending message to " + ws + " failed -- WebSocket removed", e);
                 }
             }
@@ -93,10 +102,10 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
 
         private class TestWebSocket implements WebSocket, WebSocket.OnTextMessage, WebSocket.OnBinaryMessage,
                                                           WebSocket.OnFrame, WebSocket.OnControl {
-            private FrameConnection _connection;
+            private FrameConnection connection;
 
             private FrameConnection getConnection() {
-                return _connection;
+                return connection;
             }
 
             // *** WebSocket ***
@@ -104,13 +113,13 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
             @Override
             public void onOpen(Connection connection) {
                 System.err.printf("TestWebSocket#onOpen      %s\n", connection);
-                _broadcast.add(this);
+                broadcastList.add(this);
             }
 
             @Override
             public void onClose(int code, String message) {
                 System.err.printf("TestWebSocket#onClose     %d %s\n", code, message);
-                _broadcast.remove(this);
+                broadcastList.remove(this);
             }
 
             // *** WebSocket.OnTextMessage ***
@@ -139,7 +148,7 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
             @Override
             public void onHandshake(FrameConnection connection) {
                 System.err.printf("TestWebSocket#onHandshake %s\n", connection);
-                _connection = connection;
+                this.connection = connection;
             }
 
             // *** WebSocket.OnControl ***

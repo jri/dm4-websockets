@@ -26,6 +26,7 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-websocket</artifactId>
             <version>7.6.13.v20130916</version>
+            <!-- Version must match the Jetty version embedded in org.apache.felix.http.jetty -->
         </dependency>
     </dependencies>
 
