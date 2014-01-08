@@ -43,6 +43,15 @@ Running WebSockets
    The events appear in their web consoles.
 
 
+Version History
+---------------
+
+**0.1** -- Jan 8, 2014
+
+* Pure tech demo, functional, performs no useful task, not extensible
+* Compatible with DeepaMehta 4.2-SNAPSHOT
+
+
 ------------
 Jörg Richter  
-Jan 6, 2014
+Jan 8, 2014

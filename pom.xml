@@ -7,7 +7,7 @@
     <name>DeepaMehta 4 WebSockets</name>
     <groupId>de.deepamehta</groupId>
     <artifactId>deepamehta-websockets</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>bundle</packaging>
 
     <parent>
