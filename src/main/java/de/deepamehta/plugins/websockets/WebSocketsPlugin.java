@@ -1,11 +1,9 @@
 package de.deepamehta.plugins.websockets;
 
-import de.deepamehta.core.Topic;
-import de.deepamehta.core.model.TopicModel;
+import de.deepamehta.plugins.websockets.event.WebsocketTextMessageListener;
 import de.deepamehta.core.osgi.PluginActivator;
-import de.deepamehta.core.service.ClientState;
-import de.deepamehta.core.service.Directives;
-import de.deepamehta.core.service.event.PostUpdateTopicListener;
+import de.deepamehta.core.service.DeepaMehtaEvent;
+import de.deepamehta.core.service.Listener;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
@@ -21,11 +19,22 @@ import java.util.logging.Logger;
 
 
 
-public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopicListener {
+public class WebSocketsPlugin extends PluginActivator {
 
     // ------------------------------------------------------------------------------------------------------- Constants
 
     private static final int WEBSOCKETS_PORT = 8081;
+
+    // Events
+    private static DeepaMehtaEvent WEBSOCKET_TEXT_MESSAGE = new DeepaMehtaEvent(WebsocketTextMessageListener.class) {
+        @Override
+        public void deliver(Listener listener, Object... params) {
+            ((WebsocketTextMessageListener) listener).websocketTextMessage(
+                (String) params[0]
+            );
+        }
+    };
+    // ### TODO: define further events, OPEN, CLOSE, BINARY_MESSAGE, ...
 
     // ---------------------------------------------------------------------------------------------- Instance Variables
 
@@ -60,19 +69,11 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
         }
     }
 
-    // *** Listener Implementations ***
-
-    @Override
-    public void postUpdateTopic(Topic topic, TopicModel newModel, TopicModel oldModel, ClientState clientState,
-                                                                                       Directives directives) {
-        server.broadcast(topic.toJSON().toString());
-    }
-
     // ------------------------------------------------------------------------------------------------- Private Classes
 
     private class WebSocketServer extends Server {
 
-        private ConcurrentLinkedQueue<TestWebSocket> broadcastList = new ConcurrentLinkedQueue<TestWebSocket>();
+        private ConcurrentLinkedQueue<PluginWebSocket> broadcastList = new ConcurrentLinkedQueue<PluginWebSocket>();
 
         private WebSocketServer(int port) {
             // add connector
@@ -84,13 +85,13 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
             setHandler(new WebSocketHandler() {
                 @Override
                 public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
-                    return new TestWebSocket();
+                    return new PluginWebSocket(protocol);
                 }
             });
         }
 
         private void broadcast(String message) {
-            for (TestWebSocket ws : broadcastList) {
+            for (PluginWebSocket ws : broadcastList) {
                 try {
                     ws.getConnection().sendMessage(message);
                 } catch (Exception e) {
@@ -100,54 +101,68 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
             }
         }
 
-        private class TestWebSocket implements WebSocket, WebSocket.OnTextMessage, WebSocket.OnBinaryMessage,
-                                                          WebSocket.OnFrame, WebSocket.OnControl {
+        private class PluginWebSocket implements WebSocket, WebSocket.OnTextMessage, WebSocket.OnBinaryMessage,
+                                                            WebSocket.OnFrame, WebSocket.OnControl {
+            private String pluginUri;
             private FrameConnection connection;
 
-            private FrameConnection getConnection() {
-                return connection;
+            private PluginWebSocket(String pluginUri) {
+                try {
+                    if (pluginUri == null) {
+                        throw new RuntimeException("Missing plugin URI -- Put the URI of your plugin " +
+                            "in the JavaScript WebSocket constructor (2nd parameter)");
+                    } else {
+                        dms.getPlugin(pluginUri);   // check plugin URI, throws if invalid
+                    }
+                    //
+                    logger.info("### Opening a WebSocket connection for plugin \"" + pluginUri + "\"");
+                    this.pluginUri = pluginUri;
+                } catch (Exception e) {
+                    throw new RuntimeException("Opening WebSocket connection failed", e);
+                }
             }
 
             // *** WebSocket ***
 
             @Override
             public void onOpen(Connection connection) {
-                System.err.printf("TestWebSocket#onOpen      %s\n", connection);
+                System.err.printf("PluginWebSocket#onOpen      %s\n", connection);
                 broadcastList.add(this);
             }
 
             @Override
             public void onClose(int code, String message) {
-                System.err.printf("TestWebSocket#onClose     %d %s\n", code, message);
+                System.err.printf("PluginWebSocket#onClose     %d %s\n", code, message);
                 broadcastList.remove(this);
             }
 
             // *** WebSocket.OnTextMessage ***
 
             @Override
-            public void onMessage(String data) {
-                System.err.printf("TestWebSocket#onMessage   %s\n", data);
+            public void onMessage(String message) {
+                System.err.printf("PluginWebSocket#onMessage   %s\n", message);
+                dms.deliverEvent(pluginUri, WEBSOCKET_TEXT_MESSAGE, message);
             }
 
             // *** WebSocket.OnBinaryMessage ***
 
             @Override
             public void onMessage(byte[] data, int offset, int length) {
-                System.err.printf("TestWebSocket#onMessage   %s\n", TypeUtil.toHexString(data, offset, length));
+                System.err.printf("PluginWebSocket#onMessage   %s\n", TypeUtil.toHexString(data, offset, length));
             }
 
             // *** WebSocket.OnFrame ***
 
             @Override
             public boolean onFrame(byte flags, byte opcode, byte[] data, int offset, int length) {            
-                System.err.printf("TestWebSocket#onFrame     %s|%s %s\n", TypeUtil.toHexString(flags),
+                System.err.printf("PluginWebSocket#onFrame     %s|%s %s\n", TypeUtil.toHexString(flags),
                     TypeUtil.toHexString(opcode), TypeUtil.toHexString(data, offset, length));
                 return false;
             }
         
             @Override
             public void onHandshake(FrameConnection connection) {
-                System.err.printf("TestWebSocket#onHandshake %s\n", connection);
+                System.err.printf("PluginWebSocket#onHandshake %s\n", connection);
                 this.connection = connection;
             }
 
@@ -155,9 +170,15 @@ public class WebSocketsPlugin extends PluginActivator implements PostUpdateTopic
 
             @Override
             public boolean onControl(byte controlCode, byte[] data, int offset, int length) {
-                System.err.printf("TestWebSocket#onControl   %s %s\n", TypeUtil.toHexString(controlCode),
+                System.err.printf("PluginWebSocket#onControl   %s %s\n", TypeUtil.toHexString(controlCode),
                     TypeUtil.toHexString(data, offset, length));            
                 return false;
+            }
+
+            // --- Private Methods ---
+
+            private FrameConnection getConnection() {
+                return connection;
             }
         }
     }

@@ -44,6 +44,7 @@
                             !org.mortbay.*, !org.slf4j.*, *
                         </Import-Package>
                         <Export-Package>
+                            de.deepamehta.plugins.websockets.event,
                             org.eclipse.jetty.*;-split-package:=merge-first
                         </Export-Package>
                     </instructions>
