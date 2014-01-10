@@ -45,6 +45,7 @@
                         </Import-Package>
                         <Export-Package>
                             de.deepamehta.plugins.websockets.event,
+                            de.deepamehta.plugins.websockets.service,
                             org.eclipse.jetty.*;-split-package:=merge-first
                         </Export-Package>
                     </instructions>

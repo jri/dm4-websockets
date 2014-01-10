@@ -5,7 +5,8 @@ DeepaMehta 4 WebSockets
 A DeepaMehta 4 plugin for handling WebSockets.
 
 * Launches a WebSocket server on port 8081.
-* Defines WebSocket related DeepaMehta events (server-side), allowing other plugins to listen to incoming WebSocket messages.
+* Provides a service for broadcasting text messages (server push).
+* Defines server-side events, allowing plugins to react upon incoming messages.
 
 Includes a Jetty 7 server.
 
@@ -18,7 +19,10 @@ Version History
 
 **0.2** -- upcoming
 
-* Extensibility: server-side WebSocket DeepaMehta events
+* Extensibility:
+  * Broadcast service (server push)
+  * Server-side events for reacting upon incoming messages
+* Compatible with DeepaMehta 4.2-SNAPSHOT
 
 **0.1** -- Jan 8, 2014
 

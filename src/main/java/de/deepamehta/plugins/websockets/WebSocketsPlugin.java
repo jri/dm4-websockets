@@ -1,6 +1,7 @@
 package de.deepamehta.plugins.websockets;
 
 import de.deepamehta.plugins.websockets.event.WebsocketTextMessageListener;
+import de.deepamehta.plugins.websockets.service.WebSocketsService;
 import de.deepamehta.core.osgi.PluginActivator;
 import de.deepamehta.core.service.DeepaMehtaEvent;
 import de.deepamehta.core.service.Listener;
@@ -9,17 +10,21 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.TypeUtil;
 import org.eclipse.jetty.websocket.WebSocket;
+import org.eclipse.jetty.websocket.WebSocket.Connection;
 import org.eclipse.jetty.websocket.WebSocketHandler;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
 
-public class WebSocketsPlugin extends PluginActivator {
+public class WebSocketsPlugin extends PluginActivator implements WebSocketsService {
 
     // ------------------------------------------------------------------------------------------------------- Constants
 
@@ -43,6 +48,13 @@ public class WebSocketsPlugin extends PluginActivator {
     private Logger logger = Logger.getLogger(getClass().getName());
 
     // -------------------------------------------------------------------------------------------------- Public Methods
+
+    // *** WebSocketsService Implementation ***
+
+    @Override
+    public void broadcast(String pluginUri, String message) {
+        server.broadcast(pluginUri, message);
+    }
 
     // *** Hook Implementations ***
 
@@ -73,7 +85,7 @@ public class WebSocketsPlugin extends PluginActivator {
 
     private class WebSocketServer extends Server {
 
-        private ConcurrentLinkedQueue<PluginWebSocket> broadcastList = new ConcurrentLinkedQueue<PluginWebSocket>();
+        private Map<String, Queue<Connection>> pluginConnections = new ConcurrentHashMap();
 
         private WebSocketServer(int port) {
             // add connector
@@ -90,21 +102,47 @@ public class WebSocketsPlugin extends PluginActivator {
             });
         }
 
-        private void broadcast(String message) {
-            for (PluginWebSocket ws : broadcastList) {
+        // ---
+
+        private void broadcast(String pluginUri, String message) {
+            for (Connection connection : getConnections(pluginUri)) {
                 try {
-                    ws.getConnection().sendMessage(message);
+                    connection.sendMessage(message);
                 } catch (Exception e) {
-                    broadcastList.remove(ws);
-                    logger.log(Level.SEVERE, "Sending message to " + ws + " failed -- WebSocket removed", e);
+                    removeConnection(pluginUri, connection);
+                    logger.log(Level.SEVERE, "Sending message via " + connection + " failed -- connection removed", e);
                 }
             }
         }
 
+        // ---
+
+        private Queue<Connection> getConnections(String pluginUri) {
+            return pluginConnections.get(pluginUri);
+        }
+
+        private void addConnection(String pluginUri, Connection connection) {
+            Queue<Connection> connections = getConnections(pluginUri);
+            if (connections == null) {
+                connections = new ConcurrentLinkedQueue<Connection>();
+                pluginConnections.put(pluginUri, connections);
+            }
+            connections.add(connection);
+        }
+
+        private void removeConnection(String pluginUri, Connection connection) {
+            boolean removed = getConnections(pluginUri).remove(connection);
+            if (!removed) {
+                throw new RuntimeException("Removing a connection for plugin \"" + pluginUri + "\" failed");
+            }
+        }
+
+        // ---
+
         private class PluginWebSocket implements WebSocket, WebSocket.OnTextMessage, WebSocket.OnBinaryMessage,
                                                             WebSocket.OnFrame, WebSocket.OnControl {
             private String pluginUri;
-            private FrameConnection connection;
+            private Connection connection;
 
             private PluginWebSocket(String pluginUri) {
                 try {
@@ -127,13 +165,13 @@ public class WebSocketsPlugin extends PluginActivator {
             @Override
             public void onOpen(Connection connection) {
                 System.err.printf("PluginWebSocket#onOpen      %s\n", connection);
-                broadcastList.add(this);
+                addConnection(pluginUri, connection);
             }
 
             @Override
             public void onClose(int code, String message) {
                 System.err.printf("PluginWebSocket#onClose     %d %s\n", code, message);
-                broadcastList.remove(this);
+                removeConnection(pluginUri, connection);
             }
 
             // *** WebSocket.OnTextMessage ***
@@ -173,12 +211,6 @@ public class WebSocketsPlugin extends PluginActivator {
                 System.err.printf("PluginWebSocket#onControl   %s %s\n", TypeUtil.toHexString(controlCode),
                     TypeUtil.toHexString(data, offset, length));            
                 return false;
-            }
-
-            // --- Private Methods ---
-
-            private FrameConnection getConnection() {
-                return connection;
             }
         }
     }
