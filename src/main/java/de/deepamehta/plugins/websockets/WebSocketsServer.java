@@ -67,18 +67,24 @@ class WebSocketsServer extends Server {
     // ----------------------------------------------------------------------------------------- Package Private Methods
 
     void broadcast(String pluginUri, String message) {
-        for (Connection connection : getConnections(pluginUri)) {
-            try {
-                connection.sendMessage(message);
-            } catch (Exception e) {
-                removeConnection(pluginUri, connection);
-                logger.log(Level.SEVERE, "Sending message via " + connection + " failed -- connection removed", e);
+        Queue<Connection> connections = getConnections(pluginUri);
+        if (connections != null) {
+            for (Connection connection : connections) {
+                try {
+                    connection.sendMessage(message);
+                } catch (Exception e) {
+                    removeConnection(pluginUri, connection);
+                    logger.log(Level.SEVERE, "Sending message via " + connection + " failed -- connection removed", e);
+                }
             }
         }
     }
 
     // ------------------------------------------------------------------------------------------------- Private Methods
 
+    /**
+     * Returns the open WebSocket connections associated to the given plugin, or <code>null</code> if there are none.
+     */
     private Queue<Connection> getConnections(String pluginUri) {
         return pluginConnections.get(pluginUri);
     }

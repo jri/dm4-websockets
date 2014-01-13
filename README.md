@@ -10,7 +10,7 @@ A plugin which provides the basis for handling WebSockets in DeepaMehta 4.
 
 Includes a Jetty 7 server.
 
-A simple WebSockets example application:
+A simple WebSockets example application:  
 <https://github.com/jri/dm4-websockets-example>
 
 DeepaMehta 4 is a platform for collaboration and knowledge management.  
