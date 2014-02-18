@@ -20,12 +20,12 @@ DeepaMehta 4 is a platform for collaboration and knowledge management.
 Version History
 ---------------
 
-**0.2** -- upcoming
+**0.2** -- Feb 18, 2014
 
 * Extensibility:
   * Broadcast service (server push)
   * Server-side events for reacting upon incoming messages
-* Compatible with DeepaMehta 4.2-SNAPSHOT
+* Compatible with DeepaMehta 4.2
 
 **0.1** -- Jan 8, 2014
 
@@ -35,4 +35,4 @@ Version History
 
 ------------
 Jörg Richter  
-Jan 11, 2014
+Feb 18, 2014
