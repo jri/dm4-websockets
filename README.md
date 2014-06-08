@@ -20,6 +20,10 @@ DeepaMehta 4 is a platform for collaboration and knowledge management.
 Version History
 ---------------
 
+**0.2.1** -- Jun 8, 2014
+
+* Compatible with DeepaMehta 4.3
+
 **0.2** -- Feb 18, 2014
 
 * Extensibility:
@@ -35,4 +39,4 @@ Version History
 
 ------------
 Jörg Richter  
-Feb 18, 2014
+Jun 8, 2014
