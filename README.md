@@ -8,8 +8,6 @@ A plugin which provides the basis for handling WebSockets in DeepaMehta 4.
 * Provides a service to let plugins broadcast messages to WebSocket clients (server push).
 * Defines server-side events to let plugins react upon incoming WebSocket messages.
 
-Includes a Jetty 7 server.
-
 A simple WebSockets example application:  
 <https://github.com/jri/dm4-websockets-example>
 
@@ -22,7 +20,8 @@ Version History
 
 **0.2.2** -- upcoming
 
-* Compatible with DeepaMehta 4.4 (upcoming)
+* Tiny bundle size (makes use of the Jetty 8 server included in DeepaMehta 4.4)
+* Compatible with DeepaMehta 4.4
 
 **0.2.1** -- Jun 8, 2014
 
@@ -38,6 +37,7 @@ Version History
 **0.1** -- Jan 8, 2014
 
 * Pure tech demo, functional, performs no useful task, not extensible
+* Includes a Jetty 7 server
 * Compatible with DeepaMehta 4.2-SNAPSHOT
 
 

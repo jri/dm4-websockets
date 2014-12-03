@@ -18,15 +18,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.http.jetty</artifactId>
-            <version>2.2.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-websocket</artifactId>
-            <version>7.6.13.v20130916</version>
-            <!-- Version must match the Jetty version embedded in org.apache.felix.http.jetty -->
+            <groupId>org.ops4j.pax.web</groupId>
+            <artifactId>pax-web-jetty-bundle</artifactId>
+            <version>3.1.2</version>
         </dependency>
     </dependencies>
 
@@ -41,14 +35,6 @@
                         <Bundle-Activator>
                             de.deepamehta.plugins.websockets.WebSocketsPlugin
                         </Bundle-Activator>
-                        <Import-Package>
-                            !org.mortbay.*, !org.slf4j.*, *
-                        </Import-Package>
-                        <Export-Package>
-                            de.deepamehta.plugins.websockets.event,
-                            de.deepamehta.plugins.websockets.service,
-                            org.eclipse.jetty.*;-split-package:=merge-first
-                        </Export-Package>
                     </instructions>
                 </configuration>
             </plugin>
