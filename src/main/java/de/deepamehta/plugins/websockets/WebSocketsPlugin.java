@@ -40,7 +40,7 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
             // ### server.join();
             logger.info("### Jetty WebSocket server started successfully");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Starting Jetty WebSocket server failed");
+            logger.log(Level.SEVERE, "Starting Jetty WebSocket server failed", e);
         }
     }
 
@@ -50,7 +50,7 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
             logger.info("##### Stopping Jetty WebSocket server #####");
             server.stop();
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Stopping Jetty WebSocket server failed");
+            logger.log(Level.SEVERE, "Stopping Jetty WebSocket server failed", e);
         }
     }
 }
