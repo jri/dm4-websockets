@@ -18,6 +18,10 @@ DeepaMehta 4 is a platform for collaboration and knowledge management.
 Version History
 ---------------
 
+**0.2.3** -- Mar 22, 2016
+
+* Compatible with DeepaMehta 4.7
+
 **0.2.2** -- Dec 3, 2014
 
 * Tiny bundle size (makes use of the Jetty 8 server included in DeepaMehta 4.4)
@@ -43,4 +47,4 @@ Version History
 
 ------------
 Jörg Richter  
-Dec 3, 2014
+Mar 22, 2016
