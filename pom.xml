@@ -18,9 +18,16 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.ops4j.pax.web</groupId>
-            <artifactId>pax-web-jetty-bundle</artifactId>
-            <version>3.1.2</version>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>8.1.14.v20131031</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-websocket</artifactId>
+            <version>8.1.14.v20131031</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -35,6 +42,9 @@
                         <Bundle-Activator>
                             de.deepamehta.plugins.websockets.WebSocketsPlugin
                         </Bundle-Activator>
+                        <Embed-Dependency>
+                            jetty-websocket
+                        </Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>
