@@ -1,6 +1,5 @@
 package de.deepamehta.plugins.websockets;
 
-import de.deepamehta.plugins.websockets.service.WebSocketsService;
 import de.deepamehta.core.osgi.PluginActivator;
 
 import java.util.logging.Level;
