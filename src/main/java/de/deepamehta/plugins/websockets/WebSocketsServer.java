@@ -31,7 +31,7 @@ class WebSocketsServer extends Server {
         @Override
         public void dispatch(EventListener listener, Object... params) {
             ((WebsocketTextMessageListener) listener).websocketTextMessage(
-                (String) params[0]
+                (String) params[0], (Connection) params[1]
             );
         }
     };
@@ -66,12 +66,14 @@ class WebSocketsServer extends Server {
 
     // ----------------------------------------------------------------------------------------- Package Private Methods
 
-    void broadcast(String pluginUri, String message) {
+    void broadcast(String pluginUri, String message, Connection exclude) {
         Queue<Connection> connections = getConnections(pluginUri);
         if (connections != null) {
             for (Connection connection : connections) {
                 try {
-                    connection.sendMessage(message);
+                    if (connection != exclude) {
+                        connection.sendMessage(message);
+                    }
                 } catch (Exception e) {
                     removeConnection(pluginUri, connection);
                     logger.log(Level.SEVERE, "Sending message via " + connection + " failed -- connection removed", e);
@@ -145,7 +147,7 @@ class WebSocketsServer extends Server {
 
         @Override
         public void onMessage(String message) {
-            dm4.dispatchEvent(pluginUri, WEBSOCKET_TEXT_MESSAGE, message);
+            dm4.dispatchEvent(pluginUri, WEBSOCKET_TEXT_MESSAGE, message, connection);
         }
 
         // *** WebSocket.OnBinaryMessage ***

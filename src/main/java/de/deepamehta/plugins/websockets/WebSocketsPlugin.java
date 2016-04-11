@@ -2,6 +2,8 @@ package de.deepamehta.plugins.websockets;
 
 import de.deepamehta.core.osgi.PluginActivator;
 
+import org.eclipse.jetty.websocket.WebSocket.Connection;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +27,12 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
 
     @Override
     public void broadcast(String pluginUri, String message) {
-        server.broadcast(pluginUri, message);
+        broadcast(pluginUri, message, null);    // exclude=null
+    }
+
+    @Override
+    public void broadcast(String pluginUri, String message, Connection exclude) {
+        server.broadcast(pluginUri, message, exclude);
     }
 
     // *** Hook Implementations ***

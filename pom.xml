@@ -27,7 +27,6 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-websocket</artifactId>
             <version>8.1.14.v20131031</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -45,6 +44,9 @@
                         <Embed-Dependency>
                             jetty-websocket
                         </Embed-Dependency>
+                        <_exportcontents><!-- export package without inlining the class files (we embed the jar) -->
+                            org.eclipse.jetty.websocket, *
+                        </_exportcontents>
                     </instructions>
                 </configuration>
             </plugin>
