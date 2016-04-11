@@ -1,8 +1,8 @@
 package de.deepamehta.plugins.websockets;
 
 import de.deepamehta.plugins.websockets.event.WebsocketTextMessageListener;
+import de.deepamehta.core.service.CoreService;
 import de.deepamehta.core.service.DeepaMehtaEvent;
-import de.deepamehta.core.service.DeepaMehtaService;
 import de.deepamehta.core.service.EventListener;
 
 import org.eclipse.jetty.server.Server;
@@ -29,7 +29,7 @@ class WebSocketsServer extends Server {
     // Events
     private static DeepaMehtaEvent WEBSOCKET_TEXT_MESSAGE = new DeepaMehtaEvent(WebsocketTextMessageListener.class) {
         @Override
-        public void deliver(EventListener listener, Object... params) {
+        public void dispatch(EventListener listener, Object... params) {
             ((WebsocketTextMessageListener) listener).websocketTextMessage(
                 (String) params[0]
             );
@@ -41,14 +41,14 @@ class WebSocketsServer extends Server {
 
     private Map<String, Queue<Connection>> pluginConnections = new ConcurrentHashMap();
 
-    private DeepaMehtaService dms;
+    private CoreService dm4;
 
     private Logger logger = Logger.getLogger(getClass().getName());
 
     // ----------------------------------------------------------------------------------------------------- Constructor
 
-    WebSocketsServer(int port, DeepaMehtaService dms) {
-        this.dms = dms;
+    WebSocketsServer(int port, CoreService dm4) {
+        this.dm4 = dm4;
         //
         // add connector
         SelectChannelConnector connector = new SelectChannelConnector();
@@ -119,7 +119,7 @@ class WebSocketsServer extends Server {
                     throw new RuntimeException("Missing plugin URI -- Add your plugin's URI " +
                         "as the 2nd argument to the JavaScript WebSocket constructor");
                 } else {
-                    dms.getPlugin(pluginUri);   // check plugin URI, throws if invalid
+                    dm4.getPlugin(pluginUri);   // check plugin URI, throws if invalid
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Opening WebSocket connection failed", e);
@@ -145,7 +145,7 @@ class WebSocketsServer extends Server {
 
         @Override
         public void onMessage(String message) {
-            dms.deliverEvent(pluginUri, WEBSOCKET_TEXT_MESSAGE, message);
+            dm4.dispatchEvent(pluginUri, WEBSOCKET_TEXT_MESSAGE, message);
         }
 
         // *** WebSocket.OnBinaryMessage ***

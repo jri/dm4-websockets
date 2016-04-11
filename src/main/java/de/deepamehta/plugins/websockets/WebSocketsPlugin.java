@@ -34,7 +34,7 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
     public void init() {
         try {
             logger.info("##### Starting Jetty WebSocket server #####");
-            server = new WebSocketsServer(WEBSOCKETS_PORT, dms);
+            server = new WebSocketsServer(WEBSOCKETS_PORT, dm4);
             server.start();
             // ### server.join();
             logger.info("### Jetty WebSocket server started successfully");
