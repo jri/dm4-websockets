@@ -109,6 +109,10 @@ class WebSocketsServer extends Server {
 
     // ------------------------------------------------------------------------------------------------- Private Classes
 
+    /**
+     * A WebSocket connection that is bound to a DeepaMehta plugin.
+     * When a message arrives on the connection the plugin is notified via a WEBSOCKET_TEXT_MESSAGE event.
+     */
     private class PluginWebSocket implements WebSocket, WebSocket.OnTextMessage, WebSocket.OnBinaryMessage {
 
         private String pluginUri;
@@ -147,7 +151,13 @@ class WebSocketsServer extends Server {
 
         @Override
         public void onMessage(String message) {
-            dm4.dispatchEvent(pluginUri, WEBSOCKET_TEXT_MESSAGE, message, connection);
+            try {
+                dm4.dispatchEvent(pluginUri, WEBSOCKET_TEXT_MESSAGE, message, connection);
+            } catch (Exception e) {
+                // Note: we don't rethrow to Jetty here. It would not log the exception's cause. DM's exception
+                // mapper would not kick in either as the plugin is called from Jetty directly, not Jersey.
+                logger.log(Level.SEVERE, "An error ocurred while processing a WebSocket message:", e);
+            }
         }
 
         // *** WebSocket.OnBinaryMessage ***
