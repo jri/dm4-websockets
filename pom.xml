@@ -39,12 +39,8 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>de.deepamehta.websockets</Bundle-SymbolicName>
-                        <Bundle-Activator>
-                            de.deepamehta.plugins.websockets.WebSocketsPlugin
-                        </Bundle-Activator>
-                        <Embed-Dependency>
-                            jetty-websocket
-                        </Embed-Dependency>
+                        <Bundle-Activator>de.deepamehta.websockets.WebSocketsPlugin</Bundle-Activator>
+                        <Embed-Dependency>jetty-websocket</Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>

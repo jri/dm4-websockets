@@ -1,6 +1,6 @@
-package de.deepamehta.plugins.websockets;
+package de.deepamehta.websockets;
 
-import de.deepamehta.plugins.websockets.event.WebsocketTextMessageListener;
+import de.deepamehta.websockets.event.WebsocketTextMessageListener;
 import de.deepamehta.core.osgi.PluginActivator;
 import de.deepamehta.core.service.DeepaMehtaEvent;
 import de.deepamehta.core.service.EventListener;

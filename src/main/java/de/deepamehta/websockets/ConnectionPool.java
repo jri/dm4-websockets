@@ -1,4 +1,4 @@
-package de.deepamehta.plugins.websockets;
+package de.deepamehta.websockets;
 
 import java.util.Map;
 import java.util.Queue;

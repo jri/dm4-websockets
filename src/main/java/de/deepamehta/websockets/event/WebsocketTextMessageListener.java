@@ -1,7 +1,7 @@
-package de.deepamehta.plugins.websockets.event;
+package de.deepamehta.websockets.event;
 
 import de.deepamehta.core.service.EventListener;
-import de.deepamehta.plugins.websockets.WebSocketConnection;
+import de.deepamehta.websockets.WebSocketConnection;
 
 
 

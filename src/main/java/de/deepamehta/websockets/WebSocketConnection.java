@@ -1,4 +1,4 @@
-package de.deepamehta.plugins.websockets;
+package de.deepamehta.websockets;
 
 import de.deepamehta.core.service.CoreService;
 
