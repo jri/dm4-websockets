@@ -2,14 +2,14 @@
 DeepaMehta 4 WebSockets
 =======================
 
-A plugin which provides the basis for handling WebSockets in DeepaMehta 4.
+A DeepaMehta 4 plugin which provides the basis for handling WebSockets.
 
 * Launches a WebSocket server on port 8081.
 * Provides a service to let plugins broadcast messages to WebSocket clients (server push).
 * Defines server-side events to let plugins react upon incoming WebSocket messages.
 
-A simple WebSockets example application:  
-<https://github.com/jri/dm4-websockets-example>
+A simple WebSockets demo application:  
+<https://github.com/jri/dm4-websockets-demo>
 
 DeepaMehta 4 is a platform for collaboration and knowledge management.  
 <https://github.com/jri/deepamehta>
@@ -17,6 +17,12 @@ DeepaMehta 4 is a platform for collaboration and knowledge management.
 
 Version History
 ---------------
+
+**0.3** -- Apr 18, 2016
+
+* New service call: broadcast to all but origin client.
+* More informative error reporting when server-side message processing fails.
+* Compatible with DeepaMehta 4.8
 
 **0.2.3** -- Mar 22, 2016
 
@@ -47,4 +53,4 @@ Version History
 
 ------------
 Jörg Richter  
-Mar 22, 2016
+Apr 18, 2016
