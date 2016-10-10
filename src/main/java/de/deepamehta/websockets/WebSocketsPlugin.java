@@ -86,8 +86,12 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
     @Override
     public void shutdown() {
         try {
-            logger.info("##### Stopping Jetty WebSocket server #####");
-            server.stop();
+            if (server != null) {
+                logger.info("##### Stopping Jetty WebSocket server #####");
+                server.stop();
+            } else {
+                logger.info("Stopping Jetty WebSocket server ABORTED -- not yet started");
+            }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Stopping Jetty WebSocket server failed", e);
         }
