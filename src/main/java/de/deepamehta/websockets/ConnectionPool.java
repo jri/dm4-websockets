@@ -1,9 +1,8 @@
 package de.deepamehta.websockets;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 
@@ -11,7 +10,11 @@ class ConnectionPool {
 
     // ---------------------------------------------------------------------------------------------- Instance Variables
 
-    private Map<String, Queue<WebSocketConnection>> pool = new ConcurrentHashMap();
+    /**
+     * 1st hash: plugin URI
+     * 2nd hash: session ID
+     */
+    private Map<String, Map<String, WebSocketConnection>> pool = new ConcurrentHashMap();
 
     // ----------------------------------------------------------------------------------------------------- Constructor
 
@@ -23,18 +26,19 @@ class ConnectionPool {
     /**
      * Returns the open WebSocket connections associated to the given plugin, or <code>null</code> if there are none.
      */
-    Queue<WebSocketConnection> getConnections(String pluginUri) {
-        return pool.get(pluginUri);
+    Collection<WebSocketConnection> getConnections(String pluginUri) {
+        Map connections = pool.get(pluginUri);
+        return connections != null ? connections.values() : null;
     }
 
     void add(WebSocketConnection connection) {
         String pluginUri = connection.pluginUri;
-        Queue<WebSocketConnection> connections = getConnections(pluginUri);
+        Map connections = pool.get(pluginUri);
         if (connections == null) {
-            connections = new ConcurrentLinkedQueue();
+            connections = new ConcurrentHashMap();
             pool.put(pluginUri, connections);
         }
-        connections.add(connection);
+        connections.put(connection.sessionId, connection);
     }
 
     void remove(WebSocketConnection connection) {

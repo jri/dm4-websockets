@@ -4,6 +4,7 @@ import de.deepamehta.websockets.event.WebsocketTextMessageListener;
 import de.deepamehta.core.osgi.PluginActivator;
 import de.deepamehta.core.service.DeepaMehtaEvent;
 import de.deepamehta.core.service.EventListener;
+import de.deepamehta.core.util.JavaUtils;
 
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -13,7 +14,7 @@ import org.eclipse.jetty.websocket.WebSocketHandler;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.Queue;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,7 +54,7 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
 
     @Override
     public void broadcast(String pluginUri, String message, WebSocketConnection exclude) {
-        Queue<WebSocketConnection> connections = pool.getConnections(pluginUri);
+        Collection<WebSocketConnection> connections = pool.getConnections(pluginUri);
         if (connections != null) {
             for (WebSocketConnection connection : connections) {
                 try {
@@ -101,6 +102,8 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
 
     private class WebSocketsServer extends Server {
 
+        private int counter = 0;     // counts anonymous connections
+
         private WebSocketsServer(int port) {
             // add connector
             Connector connector = new SelectChannelConnector();
@@ -112,7 +115,7 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
                 @Override
                 public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
                     checkProtocol(protocol);
-                    return new WebSocketConnection(protocol, pool, dm4);
+                    return new WebSocketConnection(protocol, sessionId(request), pool, dm4);
                 }
             });
         }
@@ -129,6 +132,11 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
                 throw new RuntimeException("Opening a WebSocket connection " +
                     (pluginUri != null ? "for plugin \"" + pluginUri + "\" " : "") + "failed", e);
             }
+        }
+
+        private String sessionId(HttpServletRequest request) {
+            String sessionId = JavaUtils.cookieValue(request, "JSESSIONID");
+            return sessionId != null ? sessionId : "anonymous-" + counter++;
         }
     }
 }
