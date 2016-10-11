@@ -22,7 +22,8 @@ public class WebSocketConnection implements WebSocket, WebSocket.OnTextMessage, 
 
     String pluginUri;
     String sessionId;
-    Connection connection;
+
+    private Connection connection;
 
     private ConnectionPool pool;
     private CoreService dm4;
@@ -74,5 +75,16 @@ public class WebSocketConnection implements WebSocket, WebSocket.OnTextMessage, 
     @Override
     public void onMessage(byte[] data, int offset, int length) {
         // ### TODO
+    }
+
+    // ----------------------------------------------------------------------------------------- Package Private Methods
+
+    void sendMessage(String message) {
+        try {
+            connection.sendMessage(message);
+        } catch (Exception e) {
+            pool.remove(this);
+            logger.log(Level.SEVERE, "Sending message via " + this + " failed -- connection removed", e);
+        }
     }
 }

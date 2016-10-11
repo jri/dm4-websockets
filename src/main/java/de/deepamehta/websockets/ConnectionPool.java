@@ -31,6 +31,19 @@ class ConnectionPool {
         return connections != null ? connections.values() : null;
     }
 
+    WebSocketConnection getConnection(String pluginUri, String sessionId) {
+        Map<String, WebSocketConnection> connections = pool.get(pluginUri);
+        if (connections == null) {
+            throw new RuntimeException("No WebSocket connection open for plugin \"" + pluginUri + "\"");
+        }
+        WebSocketConnection connection = connections.get(sessionId);
+        if (connection == null) {
+            throw new RuntimeException("No WebSocket connection open for session \"" + sessionId + "\" (plugin \"" +
+                pluginUri + "\"");
+        }
+        return connection;
+    }
+
     void add(WebSocketConnection connection) {
         String pluginUri = connection.pluginUri;
         Map connections = pool.get(pluginUri);

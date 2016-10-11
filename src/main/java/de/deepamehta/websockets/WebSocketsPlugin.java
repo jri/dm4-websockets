@@ -13,6 +13,10 @@ import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketHandler;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
 
 import java.util.Collection;
 import java.util.logging.Level;
@@ -20,6 +24,8 @@ import java.util.logging.Logger;
 
 
 
+// Note: we provide no REST API but want receive JAX-RS injections.
+@Path("/websockets")
 public class WebSocketsPlugin extends PluginActivator implements WebSocketsService {
 
     // ------------------------------------------------------------------------------------------------------- Constants
@@ -41,11 +47,28 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
     private WebSocketsServer server;
     private ConnectionPool pool = new ConnectionPool();
 
+    @Context
+    private HttpServletRequest request;
+
     private Logger logger = Logger.getLogger(getClass().getName());
 
     // -------------------------------------------------------------------------------------------------- Public Methods
 
     // *** WebSocketsService Implementation ***
+
+    @Override
+    public void sendMessage(String pluginUri, String message) {
+        if (request == null) {
+            throw new RuntimeException("No request is injected");
+        }
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new RuntimeException("No valid session is associated with this request");
+        }
+        pool.getConnection(pluginUri, session.getId()).sendMessage(message);
+    }
+
+    // ---
 
     @Override
     public void broadcast(String pluginUri, String message) {
@@ -57,13 +80,8 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
         Collection<WebSocketConnection> connections = pool.getConnections(pluginUri);
         if (connections != null) {
             for (WebSocketConnection connection : connections) {
-                try {
-                    if (connection != exclude) {
-                        connection.connection.sendMessage(message);
-                    }
-                } catch (Exception e) {
-                    pool.remove(connection);
-                    logger.log(Level.SEVERE, "Sending message via " + connection + " failed -- connection removed", e);
+                if (connection != exclude) {
+                    connection.sendMessage(message);
                 }
             }
         }
