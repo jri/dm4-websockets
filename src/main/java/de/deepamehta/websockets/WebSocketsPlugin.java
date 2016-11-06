@@ -30,7 +30,10 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
 
     // ------------------------------------------------------------------------------------------------------- Constants
 
-    private static final int WEBSOCKETS_PORT = 8081;
+    private static final int WEBSOCKETS_PORT = Integer.getInteger("dm4.websockets.port", 8081);
+    private static final String WEBSOCKETS_URL = System.getProperty("dm4.websockets.url", "ws://localhost:8081");
+    // Note: the default values are required in case no config file is in effect. This applies when DM is started
+    // via feature:install from Karaf. The default values must match the values defined in project POM.
 
     // Events
     static DeepaMehtaEvent WEBSOCKET_TEXT_MESSAGE = new DeepaMehtaEvent(WebsocketTextMessageListener.class) {
