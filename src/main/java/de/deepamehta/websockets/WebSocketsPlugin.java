@@ -1,6 +1,7 @@
 package de.deepamehta.websockets;
 
 import de.deepamehta.websockets.event.WebsocketTextMessageListener;
+import de.deepamehta.core.JSONEnabled;
 import de.deepamehta.core.osgi.PluginActivator;
 import de.deepamehta.core.service.DeepaMehtaEvent;
 import de.deepamehta.core.service.EventListener;
@@ -12,10 +13,15 @@ import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketHandler;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 
 import java.util.Collection;
@@ -24,8 +30,8 @@ import java.util.logging.Logger;
 
 
 
-// Note: we provide no REST API but want receive JAX-RS injections.
 @Path("/websockets")
+@Produces("application/json")
 public class WebSocketsPlugin extends PluginActivator implements WebSocketsService {
 
     // ------------------------------------------------------------------------------------------------------- Constants
@@ -57,7 +63,7 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
 
     // -------------------------------------------------------------------------------------------------- Public Methods
 
-    // *** WebSocketsService Implementation ***
+    // *** WebSocketsService ***
 
     @Override
     public void sendMessage(String pluginUri, String message) {
@@ -90,7 +96,23 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
         }
     }
 
-    // *** Hook Implementations ***
+    // *** REST Resource (not part of OSGi service) ***
+
+    @GET
+    public JSONEnabled getConfig() {
+        return new JSONEnabled() {
+            @Override
+            public JSONObject toJSON() {
+                try {
+                    return new JSONObject().put("dm4.websockets.url", WEBSOCKETS_URL);
+                } catch (JSONException e) {
+                    throw new RuntimeException("Serializing the WebSockets configuration failed", e);
+                }
+            }
+        };
+    }
+
+    // *** Plugin Live Cycle Hooks ***
 
     @Override
     public void init() {
