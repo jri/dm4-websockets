@@ -1,12 +1,16 @@
 dm4c.add_plugin("de.deepamehta.websockets", function() {
 
+    var url = dm4c.restc.request("GET", "/websockets")["dm4.websockets.url"]
+
+    console.log("The WebSockets server runs at", url)
+
     /**
      * Creates a WebSocket connection.
+     *
+     * The URL to connect to is determined automatically, based on the server-side `dm4.websockets.url` config property.
      * The created WebSocket auto-reconnects once timed out by the browser (usually every 5 minutes).
      * WebSocket messages are expected to be JSON. Serialization/Deserialization performs automatically.
      *
-     * @param   url
-     *              the URL to connect to.
      * @param   plugin_uri
      *              the URI of the calling plugin.
      * @param   message_processor
@@ -17,7 +21,7 @@ dm4c.add_plugin("de.deepamehta.websockets", function() {
      *          This object provides a "send_message" function which takes 1 argument: the message to be
      *          sent to the server. The argument will be automatically serialized as a JSON object.
      */
-    this.create_websocket = function(url, plugin_uri, message_processor) {
+    this.create_websocket = function(plugin_uri, message_processor) {
 
         return new function() {
 
