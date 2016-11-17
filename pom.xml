@@ -7,7 +7,7 @@
     <name>DeepaMehta 4 WebSockets</name>
     <groupId>de.deepamehta</groupId>
     <artifactId>dm48-websockets</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4</version>
     <packaging>bundle</packaging>
 
     <parent>

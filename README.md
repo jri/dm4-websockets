@@ -18,6 +18,12 @@ DeepaMehta 4 is a platform for collaboration and knowledge management.
 Version History
 ---------------
 
+**0.4** -- Nov 17, 2016
+
+* 2 config options: `dm4.websockets.port` and `dm4.websockets.url`
+* Client-side support for auto-reconnecting dropped connections
+* Extended service API: send message over a particular client connection
+
 **0.3** -- Apr 18, 2016
 
 * New service call: broadcast to all but origin client.
@@ -53,4 +59,4 @@ Version History
 
 ------------
 Jörg Richter  
-Apr 18, 2016
+Nov 17, 2016
