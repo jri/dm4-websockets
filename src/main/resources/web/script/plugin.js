@@ -2,7 +2,7 @@ dm4c.add_plugin("de.deepamehta.websockets", function() {
 
     var url = dm4c.restc.request("GET", "/websockets")["dm4.websockets.url"]
 
-    console.log("The WebSockets server runs at", url)
+    console.log("CONFIG: the WebSocket server is reachable at", url)
 
     /**
      * Creates a WebSocket connection.
