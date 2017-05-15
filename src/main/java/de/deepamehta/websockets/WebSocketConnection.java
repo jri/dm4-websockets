@@ -23,6 +23,9 @@ public class WebSocketConnection implements WebSocket, WebSocket.OnTextMessage, 
     String pluginUri;
     String sessionId;
 
+    /**
+     * The underlying Jetty WebSocket connection.
+     */
     private Connection connection;
 
     private ConnectionPool pool;
