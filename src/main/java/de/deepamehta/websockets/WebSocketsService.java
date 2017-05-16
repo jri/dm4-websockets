@@ -4,11 +4,9 @@ package de.deepamehta.websockets;
 
 public interface WebSocketsService {
 
-    void sendMessage(String pluginUri, String message);
+    void messageToAll(String pluginUri, String message);
 
-    // ---
+    void messageToAllButOne(String pluginUri, String message);
 
-    void broadcast(String pluginUri, String message);
-
-    void broadcast(String pluginUri, String message, WebSocketConnection exclude);
+    void messageToOne(String pluginUri, String message);
 }

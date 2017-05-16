@@ -66,34 +66,18 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
     // *** WebSocketsService ***
 
     @Override
-    public void sendMessage(String pluginUri, String message) {
-        if (request == null) {
-            throw new RuntimeException("No request is injected");
-        }
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new RuntimeException("No valid session is associated with this request");
-        }
-        pool.getConnection(pluginUri, session.getId()).sendMessage(message);
-    }
-
-    // ---
-
-    @Override
-    public void broadcast(String pluginUri, String message) {
+    public void messageToAll(String pluginUri, String message) {
         broadcast(pluginUri, message, null);    // exclude=null
     }
 
     @Override
-    public void broadcast(String pluginUri, String message, WebSocketConnection exclude) {
-        Collection<WebSocketConnection> connections = pool.getConnections(pluginUri);
-        if (connections != null) {
-            for (WebSocketConnection connection : connections) {
-                if (connection != exclude) {
-                    connection.sendMessage(message);
-                }
-            }
-        }
+    public void messageToAllButOne(String pluginUri, String message) {
+        broadcast(pluginUri, message, getConnection(pluginUri));
+    }
+
+    @Override
+    public void messageToOne(String pluginUri, String message) {
+        getConnection(pluginUri).sendMessage(message);
     }
 
     // *** REST Resource (not part of OSGi service) ***
@@ -138,6 +122,33 @@ public class WebSocketsPlugin extends PluginActivator implements WebSocketsServi
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Stopping Jetty WebSocket server failed", e);
+        }
+    }
+
+    // ------------------------------------------------------------------------------------------------- Private Methods
+
+    /**
+     * Returns the WebSocket connection that is associated to the current request, based on the request's session ID.
+     */
+    private WebSocketConnection getConnection(String pluginUri) {
+        if (request == null) {
+            throw new RuntimeException("No request is injected");
+        }
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new RuntimeException("No valid session is associated with this request");
+        }
+        return pool.getConnection(pluginUri, session.getId());
+    }
+
+    private void broadcast(String pluginUri, String message, WebSocketConnection exclude) {
+        Collection<WebSocketConnection> connections = pool.getConnections(pluginUri);
+        if (connections != null) {
+            for (WebSocketConnection connection : connections) {
+                if (connection != exclude) {
+                    connection.sendMessage(message);
+                }
+            }
         }
     }
 
